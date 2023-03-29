@@ -7,4 +7,5 @@
         // return "true" if Password Verified!
         return password_verify($reqPassword, $dbPassword);
     }
+    
 ?>

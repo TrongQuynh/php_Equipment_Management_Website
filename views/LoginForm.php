@@ -1,3 +1,9 @@
+<?php
+    session_start();
+    if (isset($_SESSION['loggedin']) && $_SESSION['loggedin']){
+        header('Location:/views/HomePage.php');
+    }
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -53,30 +59,44 @@
         .button-group{
             text-align: center;
         }
+        .container{
+            box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+        }
     </style>
 </head>
 
 <body>
     <div class="bodyImage">
-        <div class="container">
-            <h3 class="text-center">Login</h3>
+        <div class="container rounded">
+            <h2 class="text-center text-light">Login</h2>
             <form action="../php/Login.php" method="POST">
                 <div class="form-group">
-                    <label for="uname">Username:</label>
+                    <label for="uname" class="text-light font-weight-bold">Username:</label>
                     <input type="text" class="form-control" id="username" placeholder="Enter username" name="username"
                         required>
                     <div class="valid-feedback">Valid.</div>
                     <div class="invalid-feedback">Please fill out this field.</div>
                 </div>
                 <div class="form-group">
-                    <label for="uname">Password:</label>
+                    <label for="uname" class="text-light font-weight-bold">Password:</label>
                     <input type="password" class="form-control" id="password" placeholder="Enter Password" name="password"
                         required>
                     <div class="valid-feedback">Valid.</div>
                     <div class="invalid-feedback">Please fill out this field.</div>
                 </div>
+                <div class="form-group">
+                    <?php 
+                        if(isset($_GET["error"])){
+                            echo '
+                                <div class="alert alert-danger" role="alert">
+                                    Username or Password wrong!
+                                </div>
+                            ';
+                        }
+                    ?>
+                </div>
                 <div class="button-group">
-                    <button type="submit" id="btn_Submit" class="btn btn-primary">Submit</button>
+                    <button type="submit" id="btn_Submit" class="btn btn-outline-success">Submit</button>
                 </div>
                 
             </form>

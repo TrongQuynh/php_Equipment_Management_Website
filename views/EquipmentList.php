@@ -1,3 +1,6 @@
+<!-- Check Authent -->
+<?php include "../Helper/Authentication.php" ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,13 +15,21 @@
         .device-img{
             width: 150px;
         }
+        #tbl_header > th{
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <?php require_once "../connectDB.php"; ?>
+    <?php
+        // Get ?search=_
+        $searchStr = isset($_GET["search"]) ? $_GET["search"] : "" ;
+        $query_search = " WHERE device_name LIKE '%" . $searchStr . "%' OR code LIKE '%" . $searchStr . "%'";
+    ?>
     <?php 
-        $query = "SELECT COUNT(*) FROM equipment"; 
+        $query = "SELECT COUNT(*) FROM equipment" . $query_search; 
         $result_total_page = mysqli_query($connectDB, $query); 
         $totalItem = mysqli_fetch_row($result_total_page)[0]; 
     ?>
@@ -39,30 +50,46 @@
 
     <div class="container">
         <h3>Equipment List</h3>
-
-        <div class="text-right mb-3">
-            <a href="/views/NewEquipmentForm.php" class="badge badge-primary"><h6>New Equipment</h6></a>
-            <a href="#" class="badge badge-secondary"><h6>Print</h6></a>
+        
+        <div class="mb-3 mt-4">
+            <div class="d-inline-block">
+                <a href="/views/NewEquipmentForm.php" class="btn btn-outline-primary"><h6>New Equipment</h6></a>
+            </div>
+            <div class="d-inline-block w-50">
+                <form method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search here" name="search" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit">Search</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <table class="table table-dark table-hover">
             <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Code</th>
-                    <th>Device Name</th>
-                    <th>Device Type</th>
-                    <th>Quantiity</th>
-                    <th>Brand</th>
-                    <th>Purchase Date</th>
+                <tr id="tbl_header">
+                    <th id="ID">STT</th>
+                    <th id="code">Code</th>
+                    <th id="device_name">Device Name</th>
+                    <th id="device_type">Device Type</th>
+                    <th id="quantity">Quantiity</th>
+                    <th id="brand">Brand</th>
+                    <th id="purchase_date">Purchase Date</th>
                     <th>Device Image</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 <?php 
+                    $column = isset($_GET["col"]) ? $_GET["col"] : "ID" ;
+                    $sortType = isset($_GET["sort"]) ? $_GET["sort"] : "desc" ;
+                    $query_sort = $column . " " . $sortType;
+                ?>
+                <?php 
                     // Query Statement
-                    $query_select = "SELECT * FROM equipment LIMIT " . $itemPerPage . " OFFSET " . $skip;
+                    $query_select = "SELECT * FROM equipment " . $query_search . " ORDER BY " . $query_sort . " LIMIT " . $itemPerPage . " OFFSET " . $skip;
                     $result = mysqli_query($connectDB, $query_select);
                     if(mysqli_num_rows($result) > 0){
                         while($row = mysqli_fetch_assoc($result)){
@@ -85,8 +112,9 @@
                             </tr>
                 <?php 
                         }
+                    }else{
+                        echo "<tr><td colspan='9' class='text-center font-italic' ><h3>Not found</h3></td></tr>";
                     }
-                    /*'../php/DeleteEquipment.php?id=<?php echo $row["ID"]; ?>'*/
                 ?>
                 
             </tbody>
@@ -131,13 +159,50 @@
         </nav>
     </div>
     <script>
-        // $("modal_delete")
-        $(".btn_delete").each(function(index,item){
-            $(this).click(function(e){
-                let id = $(this).attr("id");
-                $("#modal_delete").attr("action",`../php/DeleteEquipment.php?id=${id}`);
+        $(document).ready(function(){
+            // $("modal_delete")
+            $(".btn_delete").each(function(index,item){
+                $(this).click(function(e){
+                    // Init Info for Confirm Modal
+                    $("#modalTitle").text("Warning!");
+                    $("#modalContent").text("Are you sure wanna delete this item ?");
+                    $("#btn_modal_confirm").text("Delete");
+                    
+
+                    let id = $(this).attr("id");
+                    $("#confirm_modal").modal('show');
+                    $("#modal_form").attr("method","GET");
+                    
+                    $("#btn_modal_confirm").click(async function(){
+                        // $("#modal_form").attr("action",`../php/DeleteEquipment.php?id=${id}`);
+                        // $("#modal_form").submit();
+                        await fetch(`../php/DeleteEquipment.php?id=${id}`);
+                        window.location.reload();
+                    })
+                    
+                })
+                
+            })
+        })
+    </script>
+    <script>
+        $(document).ready(function(){
+            
+            $("#tbl_header th").each(function(index, el){
+                $(this).click(function(){
+                    let field = $(this).attr("id");
+                    if(!field) return;
+                    const urlParam = new URLSearchParams(window.location.search);
+                    let sortType = !urlParam.get("sort") ? "asc" : urlParam.get("sort") == "asc" ? "desc" : "asc";
+
+                    urlParam.set("col",field);
+                    urlParam.set("sort",sortType);
+                    
+                    window.location.href = `${window.location.origin + window.location.pathname}?${urlParam.toString()}`;
+                })
             })
             
+
         })
     </script>
 </body>

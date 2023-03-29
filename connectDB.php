@@ -7,3 +7,5 @@ if ($connectDB->connect_errno) {
     exit();
 }
 // echo "Connect DB success";
+
+?>
